@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Mic, Check, ArrowRight, Loader2, Play, AlertCircle, X } from 'lucide-react';
+import { Mic, Check, ArrowRight, ArrowLeft, Loader2, Play, AlertCircle, X } from 'lucide-react';
 import emailjs from '@emailjs/browser';
 
 emailjs.init('lEFA1_pOEYyDIl6ay');
@@ -515,21 +515,32 @@ export default function App() {
                 const hasNoValidData = audioBlobs[currentStep] && cleanText.length === 0;
                 
                 return (
-                  <button 
-                    onClick={() => setCurrentStep(prev => prev + 1)} 
-                    disabled={isRecording || uploadingSteps[currentStep] > 0 || !audioBlobs[currentStep] || hasNoValidData}
-                    className={`btn-primary w-full justify-center ${(!audioBlobs[currentStep] && !isRecording) || hasNoValidData ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
-                  >
-                    {uploadingSteps[currentStep] > 0 ? (
-                      <><Loader2 className="animate-spin" size={18} /> Processing Voice...</>
-                    ) : !audioBlobs[currentStep] && !isRecording ? (
-                      <>Waiting for recording... <ArrowRight size={18} className="opacity-30" /></>
-                    ) : hasNoValidData ? (
-                      <>AI Busy (No data), please retry <ArrowRight size={18} className="opacity-30" /></>
-                    ) : (
-                      <>{currentStep === 5 ? 'Finish & Continue' : 'Next Step'} <ArrowRight size={18} /></>
+                  <div className="flex gap-3 w-full">
+                    {currentStep > 0 && (
+                      <button 
+                        onClick={() => setCurrentStep(prev => prev - 1)} 
+                        className="py-4 px-4 rounded-xl font-bold flex items-center justify-center transition-all active:scale-[0.98] bg-surface border border-border text-ink-faint hover:text-ink hover:border-ink-light w-1/4 shrink-0"
+                        title="Go back to previous question"
+                      >
+                        <ArrowLeft size={18} />
+                      </button>
                     )}
-                  </button>
+                    <button 
+                      onClick={() => setCurrentStep(prev => prev + 1)} 
+                      disabled={isRecording || uploadingSteps[currentStep] > 0 || !audioBlobs[currentStep] || hasNoValidData}
+                      className={`btn-primary flex-1 justify-center ${(!audioBlobs[currentStep] && !isRecording) || hasNoValidData ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
+                    >
+                      {uploadingSteps[currentStep] > 0 ? (
+                        <><Loader2 className="animate-spin" size={18} /> Processing Voice...</>
+                      ) : !audioBlobs[currentStep] && !isRecording ? (
+                        <>Waiting for recording... <ArrowRight size={18} className="opacity-30" /></>
+                      ) : hasNoValidData ? (
+                        <>AI Busy (No data), please retry <ArrowRight size={18} className="opacity-30" /></>
+                      ) : (
+                        <>{currentStep === 5 ? 'Finish & Continue' : 'Next Step'} <ArrowRight size={18} /></>
+                      )}
+                    </button>
+                  </div>
                 );
               })()}
             </div>
@@ -568,23 +579,33 @@ export default function App() {
             </div>
 
             <div className="flex flex-col md:flex-row items-center gap-6">
-              <button 
-                onClick={submitSurvey} 
-                className="btn-primary w-full md:w-auto justify-center px-10" 
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="animate-spin" size={18} /> 
-                    Submitting...
-                  </>
-                ) : (
-                  <>
-                    {contactInfo ? 'Submit & Close' : 'Finish Survey'}
-                    <ArrowRight size={18} />
-                  </>
-                )}
-              </button>
+              <div className="flex gap-3 w-full md:w-auto">
+                <button 
+                  onClick={() => setCurrentStep(prev => prev - 1)} 
+                  className="py-4 px-4 rounded-xl font-bold flex items-center justify-center transition-all active:scale-[0.98] bg-surface border border-border text-ink-faint hover:text-ink hover:border-ink-light"
+                  title="Go back to previous question"
+                  disabled={isSubmitting}
+                >
+                  <ArrowLeft size={18} />
+                </button>
+                <button 
+                  onClick={submitSurvey} 
+                  className="btn-primary flex-1 md:w-auto justify-center px-10" 
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="animate-spin" size={18} /> 
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      {contactInfo ? 'Submit & Close' : 'Finish Survey'}
+                      <ArrowRight size={18} />
+                    </>
+                  )}
+                </button>
+              </div>
               
               {!contactInfo && !isSubmitting && (
                 <button 
