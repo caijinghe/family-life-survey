@@ -111,7 +111,8 @@ export default function App() {
       };
 
       mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const mimeType = mediaRecorder.mimeType || 'audio/webm';
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
         setAudioBlobs(prev => ({ ...prev, [stepId]: [...(prev[stepId] || []), audioBlob] }));
         stream.getTracks().forEach(track => track.stop());
 
@@ -125,11 +126,11 @@ export default function App() {
       setTimer(0);
     } catch (err: any) {
       console.error("Microphone access denied:", err);
-      let msg = "录音授权失败。";
+      let msg = "录音启动失败。";
       if (err.name === 'NotAllowedError' || err.name === 'SecurityError') {
-        msg += "请点击浏览器地址栏左侧的“小锁”图标，确保已开启“麦克风”权限。";
+        msg += "请确保已允许网页使用麦克风权限。";
       } else {
-        msg += "可能当前环境不支持录音（请尝试在独立窗口中打开应用）。";
+        msg += "当前环境可能不支持录音，如果您在微信等App内，请点击右上角选择“在 Safari / 浏览器中打开”重试。";
       }
       setError(msg);
     }
