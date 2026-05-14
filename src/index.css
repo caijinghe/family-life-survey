@@ -1,0 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "DM Serif Display", serif;
+  --font-sans: "DM Sans", sans-serif;
+  
+  --color-cream: #F5F0E8;
+  --color-warm-white: #FDFAF5;
+  --color-ink: #1C1917;
+  --color-ink-light: #57534E;
+  --color-ink-faint: #A8A29E;
+  --color-accent: #C4622D;
+  --color-accent-light: #F0D5C4;
+  --color-border: #E2DAD0;
+  --color-success: #4A7C59;
+  --color-recording: #C4622D;
+}
+
+@layer base {
+  body {
+    @apply font-sans bg-cream text-ink min-h-screen antialiased;
+  }
+}
+
+@layer components {
+  .survey-container {
+    @apply w-full max-w-2xl mx-auto;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-8 py-4 bg-accent text-white rounded-full font-bold text-[16px] tracking-wide shadow-md transition-all hover:bg-[#A3501F] hover:-translate-y-0.5 hover:shadow-lg active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none select-none cursor-pointer;
+  }
+}
+
+@keyframes wave {
+  0%, 100% { height: 4px; }
+  50% { height: 24px; }
+}
+
+.animate-wave {
+  animation: wave 0.8s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+.animate-pulse-custom {
+  animation: pulse 1.4s ease-out infinite;
+}

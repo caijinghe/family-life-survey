@@ -1,0 +1,6 @@
+{
+  "name": "Family Life Survey",
+  "description": "An interactive survey about household task sharing using voice and text inputs.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
