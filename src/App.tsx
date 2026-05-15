@@ -444,29 +444,28 @@ export default function App() {
                 </div>
               )}
 
-              {transcripts[currentStep] && (
-                <div className={`mb-6 p-4 bg-white border rounded-xl text-xs text-left shadow-sm ${transcripts[currentStep].includes('Quota Exceeded') ? 'border-red-200 bg-red-50/30' : 'border-border'}`}>
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="font-bold text-accent uppercase tracking-wider text-[10px]">
-                      {transcripts[currentStep].includes('Quota Exceeded') ? 'Voice Captured' : 'Saved Transcript'}
-                    </span>
-                    <span className="text-[10px] text-ink-faint">Click to edit</span>
-                  </div>
-                  {transcripts[currentStep].includes('Quota Exceeded') && (
-                    <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg mb-3">
-                      <p className="text-amber-800 font-medium">
-                        Recording successful! AI is momentarily busy, but your voice is saved.
-                      </p>
-                    </div>
-                  )}
-                  <textarea 
-                    value={transcripts[currentStep]}
-                    onChange={(e) => setTranscripts(prev => ({ ...prev, [currentStep]: e.target.value }))}
-                    className="w-full bg-transparent border-none focus:ring-0 p-0 text-ink leading-relaxed resize-none"
-                    rows={Math.max(3, transcripts[currentStep].split('\n').length)}
-                  />
+              <div className={`mb-6 p-4 bg-white border rounded-xl text-xs text-left shadow-sm ${transcripts[currentStep]?.includes('Quota Exceeded') ? 'border-red-200 bg-red-50/30' : 'border-border'}`}>
+                <div className="flex justify-between items-center mb-3">
+                  <span className="font-bold text-accent uppercase tracking-wider text-[10px]">
+                    {transcripts[currentStep]?.includes('Quota Exceeded') ? 'Voice Captured' : 'Your Response'}
+                  </span>
+                  <span className="text-[10px] text-ink-faint">{transcripts[currentStep] ? 'Click to edit' : 'Type or record'}</span>
                 </div>
-              )}
+                {transcripts[currentStep]?.includes('Quota Exceeded') && (
+                  <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg mb-3">
+                    <p className="text-amber-800 font-medium">
+                      Recording successful! AI is momentarily busy, but your voice is saved.
+                    </p>
+                  </div>
+                )}
+                <textarea 
+                  value={transcripts[currentStep] || ''}
+                  onChange={(e) => setTranscripts(prev => ({ ...prev, [currentStep]: e.target.value }))}
+                  placeholder="If you can't record, please type your response here. (On iOS use Safari, on Android use Chrome/System Browser)"
+                  className="w-full bg-transparent border-none focus:ring-0 p-0 text-ink leading-relaxed resize-none min-h-[80px]"
+                  rows={Math.max(3, (transcripts[currentStep] || '').split('\n').length)}
+                />
+              </div>
 
               {audioBlobs[currentStep] && audioBlobs[currentStep].length > 0 && (
                 <div className="mb-6 p-4 bg-white border border-border rounded-xl shadow-sm">
@@ -523,36 +522,48 @@ export default function App() {
             </div>
 
             <div className="flex flex-col items-center gap-4">
-              {!audioBlobs[currentStep] && !isRecording && !uploadingSteps[currentStep] && (
+              {(!audioBlobs[currentStep] || audioBlobs[currentStep].length === 0) && !(transcripts[currentStep] || "").trim() && !isRecording && !uploadingSteps[currentStep] && (
                 <motion.p 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   className="text-xs text-accent font-medium bg-accent/5 px-3 py-1.5 rounded-full"
                 >
-                  Please record your response to continue
+                  Please record or type your response to continue
                 </motion.p>
               )}
               
               {(() => {
                 const cleanText = (transcripts[currentStep] || "").replace(/\[Transcription (pending|Error).*?\]/g, "").trim();
-                const hasNoValidData = audioBlobs[currentStep] && cleanText.length === 0;
+                const hasNoValidData = audioBlobs[currentStep] && audioBlobs[currentStep].length > 0 && cleanText.length === 0;
+                const canContinue = (audioBlobs[currentStep] && audioBlobs[currentStep].length > 0) || cleanText.length > 0;
                 
                 return (
-                  <button 
-                    onClick={() => setCurrentStep(prev => prev + 1)} 
-                    disabled={isRecording || uploadingSteps[currentStep] > 0 || !audioBlobs[currentStep] || hasNoValidData}
-                    className={`btn-primary w-full justify-center ${(!audioBlobs[currentStep] && !isRecording) || hasNoValidData ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
-                  >
-                    {uploadingSteps[currentStep] > 0 ? (
-                      <><Loader2 className="animate-spin" size={18} /> Processing Voice...</>
-                    ) : !audioBlobs[currentStep] && !isRecording ? (
-                      <>Waiting for recording... <ArrowRight size={18} className="opacity-30" /></>
-                    ) : hasNoValidData ? (
-                      <>AI Busy (No data), please retry <ArrowRight size={18} className="opacity-30" /></>
-                    ) : (
-                      <>{currentStep === 5 ? 'Finish & Continue' : 'Next Step'} <ArrowRight size={18} /></>
+                  <div className="flex gap-3 w-full">
+                    {currentStep > 0 && (
+                      <button 
+                        onClick={() => setCurrentStep(prev => prev - 1)} 
+                        className="py-4 px-4 rounded-xl font-bold flex items-center justify-center transition-all active:scale-[0.98] bg-surface border border-border text-ink-faint hover:text-ink hover:border-ink-light w-1/4 shrink-0"
+                        title="Go back to previous question"
+                      >
+                        <ArrowLeft size={18} />
+                      </button>
                     )}
-                  </button>
+                    <button 
+                      onClick={() => setCurrentStep(prev => prev + 1)} 
+                      disabled={isRecording || uploadingSteps[currentStep] > 0 || !canContinue || hasNoValidData}
+                      className={`btn-primary flex-1 justify-center ${(!canContinue && !isRecording) || hasNoValidData ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
+                    >
+                      {uploadingSteps[currentStep] > 0 ? (
+                        <><Loader2 className="animate-spin" size={18} /> Processing Voice...</>
+                      ) : !canContinue && !isRecording ? (
+                        <>Waiting for input... <ArrowRight size={18} className="opacity-30" /></>
+                      ) : hasNoValidData ? (
+                        <>AI Busy (No data), please retry <ArrowRight size={18} className="opacity-30" /></>
+                      ) : (
+                        <>{currentStep === 5 ? 'Finish & Continue' : 'Next Step'} <ArrowRight size={18} /></>
+                      )}
+                    </button>
+                  </div>
                 );
               })()}
             </div>
