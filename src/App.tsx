@@ -461,7 +461,7 @@ export default function App() {
                 <textarea 
                   value={transcripts[currentStep] || ''}
                   onChange={(e) => setTranscripts(prev => ({ ...prev, [currentStep]: e.target.value }))}
-                  placeholder="If you can't record, please type your response here. (On iOS use Safari, on Android use Chrome/System Browser)"
+                  placeholder="Can't record? Open this page in Safari (iOS) or Chrome/Samsung Browser (Android), or just type your answer here."
                   className="w-full bg-transparent border-none focus:ring-0 p-0 text-ink leading-relaxed resize-none min-h-[80px]"
                   rows={Math.max(3, (transcripts[currentStep] || '').split('\n').length)}
                 />
@@ -538,32 +538,21 @@ export default function App() {
                 const canContinue = (audioBlobs[currentStep] && audioBlobs[currentStep].length > 0) || cleanText.length > 0;
                 
                 return (
-                  <div className="flex gap-3 w-full">
-                    {currentStep > 0 && (
-                      <button 
-                        onClick={() => setCurrentStep(prev => prev - 1)} 
-                        className="py-4 px-4 rounded-xl font-bold flex items-center justify-center transition-all active:scale-[0.98] bg-surface border border-border text-ink-faint hover:text-ink hover:border-ink-light w-1/4 shrink-0"
-                        title="Go back to previous question"
-                      >
-                        <ArrowLeft size={18} />
-                      </button>
+                  <button 
+                    onClick={() => setCurrentStep(prev => prev + 1)} 
+                    disabled={isRecording || uploadingSteps[currentStep] > 0 || !canContinue || hasNoValidData}
+                    className={`btn-primary w-full justify-center ${(!canContinue && !isRecording) || hasNoValidData ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
+                  >
+                    {uploadingSteps[currentStep] > 0 ? (
+                      <><Loader2 className="animate-spin" size={18} /> Processing Voice...</>
+                    ) : !canContinue && !isRecording ? (
+                      <>Waiting for input... <ArrowRight size={18} className="opacity-30" /></>
+                    ) : hasNoValidData ? (
+                      <>AI Busy (No data), please retry <ArrowRight size={18} className="opacity-30" /></>
+                    ) : (
+                      <>{currentStep === 5 ? 'Finish & Continue' : 'Next Step'} <ArrowRight size={18} /></>
                     )}
-                    <button 
-                      onClick={() => setCurrentStep(prev => prev + 1)} 
-                      disabled={isRecording || uploadingSteps[currentStep] > 0 || !canContinue || hasNoValidData}
-                      className={`btn-primary flex-1 justify-center ${(!canContinue && !isRecording) || hasNoValidData ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
-                    >
-                      {uploadingSteps[currentStep] > 0 ? (
-                        <><Loader2 className="animate-spin" size={18} /> Processing Voice...</>
-                      ) : !canContinue && !isRecording ? (
-                        <>Waiting for input... <ArrowRight size={18} className="opacity-30" /></>
-                      ) : hasNoValidData ? (
-                        <>AI Busy (No data), please retry <ArrowRight size={18} className="opacity-30" /></>
-                      ) : (
-                        <>{currentStep === 5 ? 'Finish & Continue' : 'Next Step'} <ArrowRight size={18} /></>
-                      )}
-                    </button>
-                  </div>
+                  </button>
                 );
               })()}
             </div>
