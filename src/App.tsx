@@ -77,8 +77,23 @@ export default function App() {
     setRealtimeTranscript('');
     realtimeTranscriptRef.current = '';
     try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("Browser does not support getUserMedia");
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+      
+      // Select best supported MIME type for mobile compatibility
+      const mimeTypes = ['audio/webm', 'audio/mp4', 'audio/aac', 'audio/ogg', 'audio/wav'];
+      let options = {};
+      for (const mimeType of mimeTypes) {
+        if (MediaRecorder.isTypeSupported(mimeType)) {
+          options = { mimeType };
+          break;
+        }
+      }
+      
+      const mediaRecorder = new MediaRecorder(stream, options);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
@@ -89,7 +104,7 @@ export default function App() {
           const recognition = new SpeechRecognition();
           recognition.continuous = true;
           recognition.interimResults = true;
-          recognition.lang = 'en-US'; // Back to English as requested
+          recognition.lang = 'en-US';
 
           recognition.onresult = (event: any) => {
             let currentTranscript = '';
@@ -106,12 +121,14 @@ export default function App() {
           recognition.start();
           recognitionRef.current = recognition;
         } catch (e) {
-          console.warn("Speech Recognition failed to start, falling back to Gemini only", e);
+          console.warn("Speech Recognition failed to start", e);
         }
       }
 
       mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) audioChunksRef.current.push(event.data);
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
       };
 
       mediaRecorder.onstop = async () => {
@@ -124,7 +141,8 @@ export default function App() {
         uploadStepAudio(stepId, audioBlob);
       };
 
-      mediaRecorder.start();
+      // Start recording with a timeslice (1000ms) to ensure chunks are pushed on mobile
+      mediaRecorder.start(1000);
       setIsRecording(true);
       setRecordingStep(stepId);
       setTimer(0);
@@ -620,10 +638,9 @@ export default function App() {
               <Check size={28} className="text-accent" />
             </div>
             <h2 className="font-serif text-3xl mb-4">Thank you so much.</h2>
-            <div className="text-ink-light text-sm leading-relaxed max-w-md mx-auto space-y-2">
+            <div className="text-ink-light text-sm md:text-base leading-relaxed max-w-lg mx-auto px-6 space-y-4">
               <p>Your responses have been sent.</p>
-              <p>You've helped us understand what really happens at home.</p>
-              <p>That means a lot.</p>
+              <p>You've helped us understand what really happens at home. That means a lot.</p>
             </div>
           </motion.div>
         );
