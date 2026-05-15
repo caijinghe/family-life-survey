@@ -85,25 +85,29 @@ export default function App() {
       // Initialize Web Speech API for real-time feedback
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       if (SpeechRecognition) {
-        const recognition = new SpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = 'en-US'; // Back to English as requested
+        try {
+          const recognition = new SpeechRecognition();
+          recognition.continuous = true;
+          recognition.interimResults = true;
+          recognition.lang = 'en-US'; // Back to English as requested
 
-        recognition.onresult = (event: any) => {
-          let currentTranscript = '';
-          for (let i = 0; i < event.results.length; ++i) {
-            currentTranscript += event.results[i][0].transcript;
-          }
-          setRealtimeTranscript(currentTranscript);
-        };
+          recognition.onresult = (event: any) => {
+            let currentTranscript = '';
+            for (let i = 0; i < event.results.length; ++i) {
+              currentTranscript += event.results[i][0].transcript;
+            }
+            setRealtimeTranscript(currentTranscript);
+          };
 
-        recognition.onerror = (event: any) => {
-          console.warn("Speech Recognition Error:", event.error);
-        };
+          recognition.onerror = (event: any) => {
+            console.warn("Speech Recognition Error:", event.error);
+          };
 
-        recognition.start();
-        recognitionRef.current = recognition;
+          recognition.start();
+          recognitionRef.current = recognition;
+        } catch (e) {
+          console.warn("Speech Recognition failed to start, falling back to Gemini only", e);
+        }
       }
 
       mediaRecorder.ondataavailable = (event) => {
