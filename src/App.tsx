@@ -148,13 +148,7 @@ export default function App() {
       setTimer(0);
     } catch (err: any) {
       console.error("Microphone access denied:", err);
-      let msg = "录音启动失败。";
-      if (err.name === 'NotAllowedError' || err.name === 'SecurityError') {
-        msg += "请确保已允许网页使用麦克风权限。";
-      } else {
-        msg += "当前环境可能不支持录音，如果您在微信等App内，请点击右上角选择“在 Safari / 浏览器中打开”重试。";
-      }
-      setError(msg);
+      // Silently fail - the textarea placeholder already guides users to switch browser or type
     }
   };
 
